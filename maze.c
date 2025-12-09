@@ -14,7 +14,8 @@ Maze *maze_create(int w, int h) {
     m->h = h;
     m->grid = malloc(w * h);
     if (!m->grid) { free(m); return NULL; }
-    for (int i = 0; i < w * h; ++i) m->grid[i] = '#';
+    // Fill with solid block (ASCII 219) as wall; paths will be ' '
+    for (int i = 0; i < w * h; ++i) m->grid[i] = (char)219; // full block
     return m;
 }
 
@@ -30,6 +31,7 @@ int maze_index(Maze *m, int x, int y) {
 
 static void carve(Maze *m, int x, int y) {
     int dirs[4][2] = { {1,0}, {-1,0}, {0,1}, {0,-1} };
+    // shuffle directions
     for (int i = 0; i < 4; ++i) {
         int r = rand() % 4;
         int tx = dirs[i][0], ty = dirs[i][1];
@@ -39,7 +41,7 @@ static void carve(Maze *m, int x, int y) {
     for (int i = 0; i < 4; ++i) {
         int nx = x + dirs[i][0] * 2;
         int ny = y + dirs[i][1] * 2;
-        if (nx > 0 && ny > 0 && nx < m->w-1 && ny < m->h-1 && m->grid[maze_index(m, nx, ny)] == '#') {
+        if (nx > 0 && ny > 0 && nx < m->w-1 && ny < m->h-1 && m->grid[maze_index(m, nx, ny)] != ' ') {
             m->grid[maze_index(m, nx - dirs[i][0], ny - dirs[i][1])] = ' ';
             m->grid[maze_index(m, nx, ny)] = ' ';
             carve(m, nx, ny);
@@ -48,18 +50,19 @@ static void carve(Maze *m, int x, int y) {
 }
 
 void maze_generate(Maze *m, int difficulty) {
-    m->grid[maze_index(m, 1, 1)] = ' ';
+    // difficulty: 0=easy,1=medium,2=hard
+    m->grid[maze_index(m,1,1)] = ' ';
     carve(m, 1, 1);
 
     int extra_breaks = 0;
-    if (difficulty == 0) extra_breaks = (m->w * m->h) / 15;  // easy
+    if (difficulty == 0) extra_breaks = (m->w * m->h) / 15;  // easy = more openings
     else if (difficulty == 1) extra_breaks = (m->w * m->h) / 30;  // medium
-    else extra_breaks = 0;  // hard
+    else extra_breaks = 0;  // hard = few extra openings
 
     for (int i = 0; i < extra_breaks; ++i) {
         int x = rand_range(1, m->w - 2);
         int y = rand_range(1, m->h - 2);
-        if (m->grid[maze_index(m, x, y)] == '#') {
+        if (m->grid[maze_index(m, x, y)] != ' ') {
             m->grid[maze_index(m, x, y)] = ' ';
         }
     }

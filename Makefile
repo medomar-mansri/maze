@@ -1,8 +1,9 @@
 CC=gcc
 CFLAGS=-std=c11 -O2 -Wall
-SOURCES=main.c maze.c player.c
+SOURCES=main.c maze.c questions.c win_utils.c
+
 OBJECTS=$(SOURCES:.c=.o)
-EXEC=echoes
+EXEC=echoes.exe
 
 all: $(EXEC)
 
